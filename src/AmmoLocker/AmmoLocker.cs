@@ -119,6 +119,7 @@ namespace AmmoLocker
                 ammoLockerDef.loreToken = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_LORE";
                 ammoLockerDef.pickupIconSprite = await texDoubleMag;
                 ammoLockerDef.pickupModelPrefab = await prefabDoubleMag;
+                ammoLockerDef.canDrop = true;
                 ammoLockerDef.cooldown = ammoLockerCooldown;
                 contentPack.equipmentDefs.Add(ammoLockerDef);
 
@@ -227,11 +228,9 @@ namespace AmmoLocker
 
         public GameObject MakeAmmoLockers(EquipmentSlot self, Vector3 position, Quaternion rotation)
         {
-            Log.LogInfo(string.Format("Ammo locker spawn position: {0}", position));
             var lockers = new GameObject();
             lockers.transform.position = position;
             lockers.transform.rotation = rotation;
-            Log.LogInfo(string.Format("Ammo locker array position: {0}", lockers.transform.position));
             var lockersDeployable = lockers.AddComponent<Deployable>();
             lockersDeployable.onUndeploy = (lockersDeployable.onUndeploy ?? new UnityEvent());
             lockersDeployable.onUndeploy.AddListener(() => UnityEngine.Object.Destroy(lockers));
@@ -260,8 +259,6 @@ namespace AmmoLocker
                 playerLocker.transform.localScale = ammoLockerScale * Vector3.one;
                 NetworkServer.Spawn(playerLocker);
                 lockersDeployable.onUndeploy.AddListener(() => UnityEngine.Object.Destroy(playerLocker));
-                Log.LogInfo(string.Format("Ammo locker local position: {0}", playerLocker.transform.localPosition));
-                Log.LogInfo(string.Format("Ammo locker position: {0}", playerLocker.transform.position));
                 var playerLockerInteraction = playerLocker.GetComponent<AmmoLockerInteraction>();
                 playerLockerInteraction.SetCharacterBodies(self.characterBody, player);
             }

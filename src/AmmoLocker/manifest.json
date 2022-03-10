@@ -1,9 +1,9 @@
 ﻿{
-	"name": "CheesyBuffs",
+	"name": "AmmoLocker",
 	"author": "Cedev",
 	"version_number": "1.0.0",
 	"website_url": "",
-	"description": "Buffs for mod authors",
+	"description": "Deployable ammo locker equipment",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.19",
 		"RiskofThunder-HookGenPatcher-1.2.1",

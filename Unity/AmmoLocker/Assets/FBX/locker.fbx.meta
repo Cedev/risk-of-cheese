@@ -17,7 +17,28 @@ ModelImporter:
     second: Armature|Action.Open
   - first:
       74: 5508062484833401239
+    second: Armature|PoseLib (1)
+  - first:
+      74: -3616186796410819229
+    second: Armature|Action (1)
+  - first:
+      74: 5508062484833401239
     second: Armature|PoseLib
+  - first:
+      74: -4112503803381071763
+    second: Action.Closed
+  - first:
+      74: -5121091393577570787
+    second: Action.Open
+  - first:
+      74: -8952886498223464990
+    second: Armature|Action.Closed.001
+  - first:
+      74: 2479684497798344231
+    second: Door|Action.Open
+  - first:
+      74: 4924967858781302369
+    second: Locker|Action.Open
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -27,7 +48,7 @@ ModelImporter:
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
-    resampleCurves: 1
+    resampleCurves: 0
     optimizeGameObjects: 0
     motionNodeName: 
     rigImportErrors: 
