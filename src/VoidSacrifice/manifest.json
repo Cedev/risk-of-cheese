@@ -1,0 +1,11 @@
+﻿{
+  "name": "VoidSacrifice",
+  "author": "Cedev",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Void Sacrifice",
+  "dependencies": [
+    "bbepis-BepInExPack-5.4.19",
+    "RiskofThunder-HookGenPatcher-1.2.1"
+  ]
+}

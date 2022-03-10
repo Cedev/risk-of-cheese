@@ -1,0 +1,12 @@
+{
+	"strings": {
+		"CHEEESYBUFFS_SHORING_NAME": "Shored",
+		"CHEEESYBUFFS_OVERCHARGE_NAME": "Overcharged",
+		"CHEESEBOARD_AMMOLOCKER_EQUIPMENT_NAME": "Ammo Locker",
+		"CHEESEBOARD_AMMOLOCKER_EQUIPMENT_PICKUP": "Ammo Locker",
+		"CHEESEBOARD_AMMOLOCKER_EQUIPMENT_DESC": "Deploys lockers loaded with ammo and armor",
+
+		"CHEESEBOARD_AMMOLOCKER_NAME": "Ammo Locker",
+		"CHEESEBOARD_AMMOLOCKER_CONTEXT": "Open Locker"
+	}
+}
