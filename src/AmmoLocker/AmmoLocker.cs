@@ -60,10 +60,10 @@ namespace AmmoLocker
         public static float ammoLockerSpacing;
         public static int ammoLockerMaxDeployed;
         public static int ammoLockerMaxLockers;
+        public static bool ammoLockerEnigmaCompatible;
+        public static bool ammoLockerCanBeRandomlyTriggered;
         public static GameObject ammoLockerPrefab;
-        public static Texture2D defaultSkinSwatch;
         public static Texture2D skinSwatches;
-        public static Texture2D mysteryIcon;
         public static System.Random random;
 
         //The Awake() method is run at the very start when the game is initialized.
@@ -80,24 +80,22 @@ namespace AmmoLocker
             ammoLockerScale = Config.Bind("Ammo Locker", "ammoLockerScale", 1.05f).Value;
             ammoLockerMaxDeployed = Config.Bind("Ammo Locker", "ammoLockerMaxDeployed", 4).Value;
             ammoLockerMaxLockers = Config.Bind("Ammo Locker", "ammoLockerMaxLockers", 8).Value;
+            ammoLockerEnigmaCompatible = Config.Bind("Ammo Locker", "ammoLockerEnigmaCompatible", false).Value;
+            ammoLockerCanBeRandomlyTriggered = Config.Bind("Ammo Locker", "ammoLockerCanBeRandomlyTriggered", false).Value;
 
             PluginContent.LoadContentAsync(PluginGUID, async (contentPack, progress) =>
             {
 
                 var assetBundle = progress.Step(PluginContent.LoadAssetBundle(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location), "assets")));
 
-                var texDoubleMag = progress.Step(PluginContent.LoadLegacyAsync<Sprite>("Textures/ItemIcons/texDoubleMagIcon"));
-                var prefabDoubleMag = progress.Step(PluginContent.LoadLegacyAsync<GameObject>("Prefabs/PickupModels/PickupDoubleMag"));
-
-
-                var texMysteryIcon = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texMysteryIcon.png"));
                 var texShoringBuff = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texBuffShoring.png"));
                 var texOverchargeBuff = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texBuffOvercharge.png"));
-                var ammoLockerPrefabStep = progress.After(assetBundle, ab => ab.LoadAsync<GameObject>("Assets/Prefabs/locker.prefab"));
-                var texDefaultSkin = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texDefaultSkin.png"));
-                var texSkinSwatches = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texSkinSwatches.png"));
 
-                mysteryIcon = await texMysteryIcon;
+                var texAmmoLockerIcon = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texAmmoLockerIcon.png"));
+                var padlockPrefab = progress.After(assetBundle, ab => ab.LoadAsync<GameObject>("Assets/Prefabs/padlock.prefab"));
+                var ammoLockerPrefabStep = progress.After(assetBundle, ab => ab.LoadAsync<GameObject>("Assets/Prefabs/locker.prefab"));
+
+                var texSkinSwatches = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texSkinSwatches.png"));
 
                 shoringDef = ScriptableObject.CreateInstance<BuffDef>();
                 shoringDef.name = "CHEEESYBUFFS_SHORING_NAME";
@@ -113,13 +111,16 @@ namespace AmmoLocker
 
                 ammoLockerDef = ScriptableObject.CreateInstance<EquipmentDef>();
                 ammoLockerDef.name = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_NAME";
-                ammoLockerDef.nameToken = ammoLockerDef.name;
+                ammoLockerDef.nameToken = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_NAME";
                 ammoLockerDef.pickupToken = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_PICKUP";
                 ammoLockerDef.descriptionToken = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_DESC";
                 ammoLockerDef.loreToken = "CHEESEBOARD_AMMOLOCKER_EQUIPMENT_LORE";
-                ammoLockerDef.pickupIconSprite = await texDoubleMag;
-                ammoLockerDef.pickupModelPrefab = await prefabDoubleMag;
+                ammoLockerDef.pickupIconSprite = (await texAmmoLockerIcon).ToSprite();
+                ammoLockerDef.pickupModelPrefab = await padlockPrefab;
                 ammoLockerDef.canDrop = true;
+                ammoLockerDef.colorIndex = ColorCatalog.ColorIndex.Equipment;
+                ammoLockerDef.enigmaCompatible = ammoLockerEnigmaCompatible;
+                ammoLockerDef.canBeRandomlyTriggered = ammoLockerCanBeRandomlyTriggered;
                 ammoLockerDef.cooldown = ammoLockerCooldown;
                 contentPack.equipmentDefs.Add(ammoLockerDef);
 
@@ -129,7 +130,6 @@ namespace AmmoLocker
                 Log.LogInfo(string.Format("Ammo locker prefab NetworkInstance asset ID: {0}", ammoLockerPrefab.GetComponent<NetworkIdentity>().assetId));
                 contentPack.networkedObjectPrefabs.Add(ammoLockerPrefab);
 
-                defaultSkinSwatch = await texDefaultSkin;
                 skinSwatches = await texSkinSwatches;
             });
 

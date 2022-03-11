@@ -54,14 +54,14 @@ namespace AmmoLocker
                 foreach (var material in materials)
                 {
                     Log.LogDebug(string.Format("Material {0}", material.name));
-                    if (material.name.StartsWith("Portrait") && body.portraitIcon != null)
+                    if (body.portraitIcon != null && material.name.StartsWith("Portrait"))
                     {
                         Log.LogDebug(string.Format("Setting portrait mainTexture to {0}", body.portraitIcon));
-                        material.mainTexture = body.portraitIcon ?? AmmoLocker.mysteryIcon;
-                    } else if (material.name.StartsWith("Skin"))
+                        material.mainTexture = body.portraitIcon;
+                    } else if (skinTexture != null && material.name.StartsWith("Skin"))
                     {
                         Log.LogDebug(string.Format("Setting skin mainTexture to {0}", skinTexture));
-                        material.mainTexture = skinTexture ?? AmmoLocker.defaultSkinSwatch;
+                        material.mainTexture = skinTexture;
                     }
                 }
                 renderer.materials = materials;
