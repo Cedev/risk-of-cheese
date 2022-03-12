@@ -55,8 +55,20 @@ namespace AmmoLocker
         }
     }
 
-    
-    public class UnityTask<T> : INotifyCompletion where T : AsyncOperation
+    // Everything needed to be awaitable in c#
+    public interface IAwaitable<out T>
+    {
+        public IAwaiter<T> GetAwaiter();
+    }
+
+    public interface IAwaiter<out T> : INotifyCompletion
+    {
+        bool IsCompleted { get; }
+        T GetResult();
+
+    }
+
+    public class UnityTask<T> : IAwaitable<T>, IAwaiter<T> where T : AsyncOperation
     {
         private readonly T unityAsyncOperation;
         public UnityTask(T unityAsyncOperation)
@@ -76,7 +88,7 @@ namespace AmmoLocker
             unityAsyncOperation.completed += _ => continuation();
         }
 
-        public UnityTask<T> GetAwaiter()
+        public IAwaiter<T> GetAwaiter()
         {
             return this;
         }
@@ -121,6 +133,11 @@ namespace AmmoLocker
             var abr = await bundle.LoadAssetAsync(name).Awaitable();
             Log.LogInfo(string.Format("Loaded {0} from bundle: {1}", name, abr.asset));
             return (T) abr.asset;
+        }
+
+        public static async Task<T> LoadAsync<T>(this Task<AssetBundle> bundle, string name) where T : UnityEngine.Object
+        {
+            return await (await bundle).LoadAsync<T>(name);
         }
 
         public static async Task<AssetBundle> LoadAssetBundle(string path)

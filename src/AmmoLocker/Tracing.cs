@@ -5,10 +5,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-#if DEBUG
-namespace CheesyBuffs
-{
 
+namespace AmmoLocker
+{
     public static class Tracing
     {
 
@@ -191,4 +190,3 @@ namespace CheesyBuffs
         }
     }
 }
-#endif

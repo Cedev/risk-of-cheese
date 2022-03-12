@@ -3,19 +3,11 @@ using R2API;
 using R2API.Utils;
 using RoR2;
 using UnityEngine;
-using System.Reflection;
-using MonoMod.RuntimeDetour;
-using System.Linq.Expressions;
 using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections;
-using RoR2.ContentManagement;
-using UnityEngine.AddressableAssets;
-using System.Threading.Tasks;
 using UnityEngine.Networking;
-using BepInEx.Configuration;
 using UnityEngine.Events;
 
 namespace AmmoLocker
@@ -33,7 +25,8 @@ namespace AmmoLocker
     //We will be using 3 modules from R2API: ItemAPI to add our item, ItemDropAPI to have our item drop ingame, and LanguageAPI to add our language tokens.
     [R2APISubmoduleDependency(
         nameof(DeployableAPI),
-        nameof(LanguageAPI)
+        nameof(LanguageAPI),
+        nameof(CommandHelper)
         )]
 
     //This is the main declaration of our plugin class. BepInEx searches for all classes inheriting from BaseUnityPlugin to initialize on startup.
@@ -45,7 +38,7 @@ namespace AmmoLocker
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Cedev";
         public const string PluginName = "AmmoLocker";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         //We need our item definition to persist through our functions, and therefore make it a class field.
         public static BuffDef shoringDef;
@@ -88,14 +81,14 @@ namespace AmmoLocker
 
                 var assetBundle = progress.Step(PluginContent.LoadAssetBundle(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location), "assets")));
 
-                var texShoringBuff = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texBuffShoring.png"));
-                var texOverchargeBuff = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texBuffOvercharge.png"));
+                var texShoringBuff = progress.Step(assetBundle.LoadAsync<Texture2D>("Assets/Icons/texBuffShoring.png"));
+                var texOverchargeBuff = progress.Step(assetBundle.LoadAsync<Texture2D>("Assets/Icons/texBuffOvercharge.png"));
 
-                var texAmmoLockerIcon = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texAmmoLockerIcon.png"));
-                var padlockPrefab = progress.After(assetBundle, ab => ab.LoadAsync<GameObject>("Assets/Prefabs/padlock.prefab"));
-                var ammoLockerPrefabStep = progress.After(assetBundle, ab => ab.LoadAsync<GameObject>("Assets/Prefabs/locker.prefab"));
+                var texAmmoLockerIcon = progress.Step(assetBundle.LoadAsync<Texture2D>("Assets/Icons/texAmmoLockerIcon.png"));
+                var padlockPrefab = progress.Step(assetBundle.LoadAsync<GameObject>("Assets/Prefabs/padlock.prefab"));
+                var ammoLockerPrefabStep = progress.Step(assetBundle.LoadAsync<GameObject>("Assets/Prefabs/locker.prefab"));
 
-                var texSkinSwatches = progress.After(assetBundle, ab => ab.LoadAsync<Texture2D>("Assets/Icons/texSkinSwatches.png"));
+                var texSkinSwatches = progress.Step(assetBundle.LoadAsync<Texture2D>("Assets/Icons/texSkinSwatches.png"));
 
                 shoringDef = ScriptableObject.CreateInstance<BuffDef>();
                 shoringDef.name = "CHEEESYBUFFS_SHORING_NAME";
@@ -175,11 +168,41 @@ namespace AmmoLocker
             // Fix reload skills not using stock from generic skill
             On.RoR2.Skills.ReloadSkillDef.OnFixedUpdate += (orig, self, genericSkill) =>
             {
-                Log.LogInfo(string.Format("Swapping {0} max stock for {1}", self.baseMaxStock, genericSkill.maxStock));
                 var tmpBaseMaxStock = self.baseMaxStock;
                 self.baseMaxStock = genericSkill.maxStock;
                 orig(self, genericSkill);
                 self.baseMaxStock = tmpBaseMaxStock;
+            };
+
+
+            // Fix crosshairs to support extra stacks
+            On.RoR2.UI.CrosshairController.Awake += (orig, self) =>
+            {
+                Log.LogInfo(string.Format("CrosshairController {0} Awake on {0}", self.name, self.gameObject.name));
+                orig(self);
+                // Fix Bandit primary crosshair to support more than 4 stacks
+                if (self.gameObject.name.StartsWith("Bandit2Crosshair"))
+                {
+                    for (var i = 0; i < self.skillStockSpriteDisplays.Length; i++)
+                    {
+                        var stockDisplay = self.skillStockSpriteDisplays[i];
+                        if (stockDisplay.skillSlot == SkillSlot.Primary && stockDisplay.maximumStockCountToBeValid >= 4)
+                        {
+                            stockDisplay.maximumStockCountToBeValid = Math.Max(99, stockDisplay.maximumStockCountToBeValid);
+                        }
+                        self.skillStockSpriteDisplays[i] = stockDisplay;
+                    }
+                }
+                // Fix captain supply drop indicator for more than 1 stack
+                else if (self.gameObject.name.StartsWith("CaptainSupplyDropCrosshair"))
+                {
+                    for (var i = 0; i < self.skillStockSpriteDisplays.Length; i++)
+                    {
+                        var stockDisplay = self.skillStockSpriteDisplays[i];
+                        stockDisplay.maximumStockCountToBeValid = Math.Max(99, stockDisplay.maximumStockCountToBeValid);
+                        self.skillStockSpriteDisplays[i] = stockDisplay;
+                    }
+                }
             };
 
             On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
@@ -195,25 +218,7 @@ namespace AmmoLocker
                 }
             };
 
-#if DEBUG
-            Tracer.Instance.Format<GenericSkill>(gs => string.Format("{0} {{stacks: {1}/{2}}}", gs, gs.stock, gs.maxStock));
-            Tracer.Instance.Filter<GenericSkill>(gs => gs.characterBody && gs.characterBody.isPlayerControlled);
-
-            On.RoR2.GenericSkill.AddOneStock += LogStock<On.RoR2.GenericSkill.hook_AddOneStock>();
-            On.RoR2.GenericSkill.ApplyAmmoPack += LogStock<On.RoR2.GenericSkill.hook_ApplyAmmoPack>();
-            On.RoR2.GenericSkill.AssignSkill += LogStock<On.RoR2.GenericSkill.hook_AssignSkill>();
-            On.RoR2.GenericSkill.DeductStock += LogStock<On.RoR2.GenericSkill.hook_DeductStock>();
-            On.RoR2.GenericSkill.RemoveAllStocks += LogStock<On.RoR2.GenericSkill.hook_RemoveAllStocks>();
-            On.RoR2.GenericSkill.Reset += LogStock<On.RoR2.GenericSkill.hook_Reset>();
-            On.RoR2.GenericSkill.RestockContinuous += LogStock<On.RoR2.GenericSkill.hook_RestockContinuous>();
-            On.RoR2.GenericSkill.RestockSteplike += LogStock<On.RoR2.GenericSkill.hook_RestockSteplike>();
-            On.RoR2.GenericSkill.Start += LogStock<On.RoR2.GenericSkill.hook_Start>();
-            On.RoR2.GenericSkill.OnExecute += LogStock<On.RoR2.GenericSkill.hook_OnExecute>();
-
-            On.RoR2.Skills.SkillDef.OnExecute += LogStock<On.RoR2.Skills.SkillDef.hook_OnExecute>();
-
-            On.RoR2.GenericSkill.RecalculateMaxStock += LogStock<On.RoR2.GenericSkill.hook_RecalculateMaxStock>();
-#endif
+            CommandHelper.AddToConsoleWhenReady();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
             Log.LogInfo(nameof(Awake) + " done.");
@@ -277,58 +282,6 @@ namespace AmmoLocker
                 MakeAmmoLockers(self, raycastHit.point, Util.QuaternionSafeLookRotation((self.characterBody.corePosition - raycastHit.point), raycastHit.normal));
             }
         }
-
-#if DEBUG
-        private T LogStock<T>()
-        {
-            return Tracing.Trace<T>(Tracer.Instance);
-        }
-
-
-        //The Update() method is run on every frame of the game.
-        private void Update()
-        {
-            //This if statement checks if the player has currently pressed F2.
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                //Get the player body to use a position:	
-                var body = PlayerCharacterMasterController.instances[0].master.GetBody();
-
-
-                //Get the player body to use a position:	
-                var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
-
-                //And then drop our defined item in front of the player.
-
-                Log.LogInfo($"Player pressed F2. Spawning our custom item at coordinates {transform.position}");
-                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ammoLockerDef.equipmentIndex), transform.position, transform.forward * 20f);
-                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.Firework.itemIndex), transform.position, transform.forward * 30f);
-                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.Squid.itemIndex), transform.position, transform.forward * 40f);
-
-
-            }   
-        }
-#endif
     }
-
-    public static class Hooking<T>
-    {
-
-        public static Hook Get<V>(Expression<Func<T, V>> prop, Func<Func<T, V>, T, V> replacement)
-        {
-            return new Hook(Prop(prop).GetGetMethod(), replacement);
-        }
-
-        public static Hook Set<V>(Expression<Func<T, V>> prop, Action<Action<T, V>, T, V> replacement)
-        {
-            return new Hook(Prop(prop).GetSetMethod(), replacement);
-        }
-
-        public static PropertyInfo Prop<V>(Expression<Func<T,V>> prop)
-        {
-            return ((prop.Body as MemberExpression).Member as PropertyInfo);
-        }
-    }
-
 }
 

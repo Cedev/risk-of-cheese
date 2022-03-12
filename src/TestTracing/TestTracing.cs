@@ -10,7 +10,6 @@ namespace TestTracing
     {
         public delegate int UnaryOp(Func<int, int> orig, int x);
 
-#if DEBUG
         [TestMethod]
         public void TestTrace()
         {
@@ -21,6 +20,5 @@ namespace TestTracing
             Assert.AreEqual(traced(x => x * 2, 7), 12);
             
         }
-#endif
     }
 }

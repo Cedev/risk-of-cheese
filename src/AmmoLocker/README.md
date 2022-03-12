@@ -10,6 +10,11 @@ Cooldown, buff duration, deployment range, locker size, enigma compatibility and
 
 ## Changelog
 
+**1.0.1**
+
+* Display reticules for Bandit primary, Captain special when above normal max stacks.
+* Added debugging console commands
+
 **1.0.0**
 
 * First release
