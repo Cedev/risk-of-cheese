@@ -26,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
+      <HintPath>J:\Games\Steam\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_RoR2">
       <HintPath>..\libs\MMHOOK_RoR2.dll</HintPath>
     </Reference>

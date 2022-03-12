@@ -1,7 +1,7 @@
 ﻿{
 	"name": "AmmoLocker",
 	"author": "Cedev",
-	"version_number": "1.0.1",
+	"version_number": "1.0.2",
 	"website_url": "https://github.com/Cedev/risk-of-cheese",
 	"description": "Deployable ammo locker equipment",
 	"dependencies": [

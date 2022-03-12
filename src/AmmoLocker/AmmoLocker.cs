@@ -38,7 +38,7 @@ namespace AmmoLocker
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Cedev";
         public const string PluginName = "AmmoLocker";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.0.2";
 
         //We need our item definition to persist through our functions, and therefore make it a class field.
         public static BuffDef shoringDef;

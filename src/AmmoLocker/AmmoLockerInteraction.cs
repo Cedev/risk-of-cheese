@@ -31,12 +31,7 @@ namespace AmmoLocker
 
         public static CharacterBody GetCharacterBody(NetworkInstanceId netId)
         {
-            Log.LogDebug(string.Format("RpcSetPortrait {0}", netId));
-            var localObject = ClientScene.FindLocalObject(netId);
-            Log.LogDebug(string.Format("RpcSetPortrait found localObject {0}", localObject));
-            var body = localObject?.GetComponent<CharacterBody>();
-            Log.LogDebug(string.Format("RpcSetPortrait found body {0}", body));
-            return body;
+            return ClientScene.FindLocalObject(netId)?.GetComponent<CharacterBody>();
         }
 
 
@@ -93,21 +88,25 @@ namespace AmmoLocker
 
                     characterBody.AddTimedBuffAuthority(AmmoLocker.overchargeDef.buffIndex, AmmoLocker.ammoLockerBuffDuration);
                     characterBody.AddTimedBuffAuthority(AmmoLocker.shoringDef.buffIndex, AmmoLocker.ammoLockerBuffDuration);
-                    foreach (var skill in characterBody.skillLocator.allSkills)
-                    {
-                        skill.Reset();
-                    }
                     characterBody.healthComponent.AddBarrierAuthority(characterBody.healthComponent.fullBarrier * AmmoLocker.ammoLockerBarrier);
 
-                    RpcOnInteraction();
+                    RpcOnInteraction(characterBody.netId);
                 }
             }
         }
 
         [ClientRpc]
-        public void RpcOnInteraction()
+        public void RpcOnInteraction(NetworkInstanceId bodyId)
         {
             Log.LogDebug("RpcOnInteraction");
+            var skillLocator = GetCharacterBody(bodyId)?.skillLocator;
+            if (skillLocator != null)
+            {
+                foreach (var skill in skillLocator.allSkills)
+                {
+                    skill.Reset();
+                }
+            }
             gameObject.GetComponentInChildren<Animator>().Play("Base Layer.Opening");
         }
 
