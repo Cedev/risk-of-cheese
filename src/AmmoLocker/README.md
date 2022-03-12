@@ -10,6 +10,10 @@ Cooldown, buff duration, deployment range, locker size, enigma compatibility and
 
 ## Changelog
 
+**1.0.3**
+
+ * Fixed open animation so locker stays open
+
 **1.0.2**
 
  * Multiplayer networking support
