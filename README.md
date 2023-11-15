@@ -3,7 +3,7 @@
 Various mods for Risk of Rgain 2:
 
  - [VoidSacrifice](https://thunderstore.io/package/Recheesers/VoidSacrifice/) Void monsters can drop void items while artifact of sacrifice is enabled
- - AmmoLocker - a deployable interactable ammo locker
+ - [AmmoLocker](https://thunderstore.io/package/Recheesers/AmmoLocker/) - a deployable interactable ammo locker
  
 ## Build workflow
 

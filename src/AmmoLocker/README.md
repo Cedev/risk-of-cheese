@@ -10,6 +10,10 @@ Cooldown, buff duration, deployment range, locker size, enigma compatibility and
 
 ## Changelog
 
+**2.0.0**
+
+ * Migrated to R2API 5.0.5, with explicit dependencies
+
 **1.0.3**
 
  * Fixed open animation so locker stays open
